@@ -1,7 +1,7 @@
 package com.diegoanyosa.portfolioservice.controller;
 
 import com.diegoanyosa.portfolioservice.api.PortfolioApiDelegate;
-import com.diegoanyosa.portfolioservice.model.dto.*;
+import com.diegoanyosa.portfolioservice.api.model.*;
 import com.diegoanyosa.portfolioservice.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
