@@ -1,7 +1,7 @@
 package com.diegoanyosa.portfolioservice.service;
 
 import com.diegoanyosa.portfolioservice.model.*;
-import com.diegoanyosa.portfolioservice.model.dto.*;
+import com.diegoanyosa.portfolioservice.api.model.*;
 import com.diegoanyosa.portfolioservice.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

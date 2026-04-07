@@ -14,8 +14,8 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
-        <jjwt.version>0.12.5</jjwt.version>
+        <spring-cloud.version>2025.0.1</spring-cloud.version>
+        <jjwt.version>0.12.7</jjwt.version>
         <openapi-generator.version>7.4.0</openapi-generator.version>
         <!-- Where the plugin writes generated sources -->
         <openapi.generated-sources>${project.build.directory}/generated-sources/openapi</openapi.generated-sources>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>2.8.16</version>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
@@ -198,7 +198,7 @@
 
                             <!-- ④ Package names -->
                             <apiPackage>com.diegoanyosa.portfolioservice.api</apiPackage>
-                            <modelPackage>com.diegoanyosa.portfolioservice.model.dto</modelPackage>
+                            <modelPackage>com.diegoanyosa.portfolioservice.api.model</modelPackage>
                             <invokerPackage>com.diegoanyosa.portfolioservice.api</invokerPackage>
 
                             <!-- ⑤ Generator options -->
