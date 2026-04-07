@@ -1,110 +1,163 @@
 package com.diegoanyosa.portfolioservice.controller;
 
-import com.diegoanyosa.portfolioservice.dto.request.*;
-import com.diegoanyosa.portfolioservice.dto.response.*;
+import com.diegoanyosa.portfolioservice.api.PortfolioApiDelegate;
+import com.diegoanyosa.portfolioservice.model.dto.*;
 import com.diegoanyosa.portfolioservice.service.PortfolioService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/portfolio")
+/**
+ * Implements the generated {@link PortfolioApiDelegate}.
+ *
+ * The openapi-generator-maven-plugin reads portfolio-api.yaml and produces:
+ *   • PortfolioApi          – the @RequestMapping interface (wired by Spring MVC)
+ *   • PortfolioApiDelegate  – the delegate interface you implement here
+ *   • All DTO classes under model.dto.*
+ *
+ * Security (@PreAuthorize) is enforced here rather than in the YAML so that
+ * Spring Security's method-level security (enabled in SecurityConfig) applies.
+ */
+@Component
 @RequiredArgsConstructor
-public class PortfolioController {
+public class PortfolioController implements PortfolioApiDelegate {
 
     private final PortfolioService portfolioService;
 
-    // ── Experience ─────────────────────────── PUBLIC (GET) / ADMIN (write)
+    // ── Experience ────────────────────────────────────────────────────────
 
-    @GetMapping("/experience")
-    public ResponseEntity<ApiResponse<List<ExperienceResponse>>> getAllExperiences() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getAllExperiences()));
+    @Override
+    public ResponseEntity<ExperienceListResponse> getAllExperiences() {
+        ExperienceListResponse body = new ExperienceListResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getAllExperiences());
+        return ResponseEntity.ok(body);
     }
 
-    @GetMapping("/experience/{id}")
-    public ResponseEntity<ApiResponse<ExperienceResponse>> getExperience(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getExperienceById(id)));
+    @Override
+    public ResponseEntity<ExperienceSingleResponse> getExperienceById(UUID id) {
+        ExperienceSingleResponse body = new ExperienceSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getExperienceById(id));
+        return ResponseEntity.ok(body);
     }
 
-    @PostMapping("/experience")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ExperienceResponse>> createExperience(
-            @Valid @RequestBody ExperienceRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.ok("Created", portfolioService.createExperience(req)));
+    public ResponseEntity<ExperienceSingleResponse> createExperience(ExperienceRequest req) {
+        ExperienceSingleResponse body = new ExperienceSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("Created");
+        body.setData(portfolioService.createExperience(req));
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
-    @PutMapping("/experience/{id}")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ExperienceResponse>> updateExperience(
-            @PathVariable UUID id, @Valid @RequestBody ExperienceRequest req) {
-        return ResponseEntity.ok(ApiResponse.ok("Updated", portfolioService.updateExperience(id, req)));
+    public ResponseEntity<ExperienceSingleResponse> updateExperience(UUID id, ExperienceRequest req) {
+        ExperienceSingleResponse body = new ExperienceSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("Updated");
+        body.setData(portfolioService.updateExperience(id, req));
+        return ResponseEntity.ok(body);
     }
 
-    @DeleteMapping("/experience/{id}")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteExperience(@PathVariable UUID id) {
+    public ResponseEntity<VoidResponse> deleteExperience(UUID id) {
         portfolioService.deleteExperience(id);
-        return ResponseEntity.ok(ApiResponse.ok("Deleted", null));
+        VoidResponse body = new VoidResponse();
+        body.setSuccess(true);
+        body.setMessage("Deleted");
+        return ResponseEntity.ok(body);
     }
 
-    // ── Skills ──────────────────────────────────────── PUBLIC
+    // ── Skills ────────────────────────────────────────────────────────────
 
-    @GetMapping("/skills")
-    public ResponseEntity<ApiResponse<List<SkillResponse>>> getAllSkills() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getAllSkills()));
+    @Override
+    public ResponseEntity<SkillListResponse> getAllSkills() {
+        SkillListResponse body = new SkillListResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getAllSkills());
+        return ResponseEntity.ok(body);
     }
 
-    // ── Projects ────────────────────────────── PUBLIC (GET) / ADMIN (write)
+    // ── Projects ──────────────────────────────────────────────────────────
 
-    @GetMapping("/projects")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAllProjects() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getAllProjects()));
+    @Override
+    public ResponseEntity<ProjectListResponse> getAllProjects() {
+        ProjectListResponse body = new ProjectListResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getAllProjects());
+        return ResponseEntity.ok(body);
     }
 
-    @GetMapping("/projects/{id}")
-    public ResponseEntity<ApiResponse<ProjectResponse>> getProject(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getProjectById(id)));
+    @Override
+    public ResponseEntity<ProjectSingleResponse> getProjectById(UUID id) {
+        ProjectSingleResponse body = new ProjectSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getProjectById(id));
+        return ResponseEntity.ok(body);
     }
 
-    @PostMapping("/projects")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProjectResponse>> createProject(
-            @Valid @RequestBody ProjectRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.ok("Created", portfolioService.createProject(req)));
+    public ResponseEntity<ProjectSingleResponse> createProject(ProjectRequest req) {
+        ProjectSingleResponse body = new ProjectSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("Created");
+        body.setData(portfolioService.createProject(req));
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
-    @PutMapping("/projects/{id}")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProjectResponse>> updateProject(
-            @PathVariable UUID id, @Valid @RequestBody ProjectRequest req) {
-        return ResponseEntity.ok(ApiResponse.ok("Updated", portfolioService.updateProject(id, req)));
+    public ResponseEntity<ProjectSingleResponse> updateProject(UUID id, ProjectRequest req) {
+        ProjectSingleResponse body = new ProjectSingleResponse();
+        body.setSuccess(true);
+        body.setMessage("Updated");
+        body.setData(portfolioService.updateProject(id, req));
+        return ResponseEntity.ok(body);
     }
 
-    @DeleteMapping("/projects/{id}")
+    @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable UUID id) {
+    public ResponseEntity<VoidResponse> deleteProject(UUID id) {
         portfolioService.deleteProject(id);
-        return ResponseEntity.ok(ApiResponse.ok("Deleted", null));
+        VoidResponse body = new VoidResponse();
+        body.setSuccess(true);
+        body.setMessage("Deleted");
+        return ResponseEntity.ok(body);
     }
 
-    // ── Certifications ──────────────────────────────── PUBLIC
+    // ── Certifications ────────────────────────────────────────────────────
 
-    @GetMapping("/certifications")
-    public ResponseEntity<ApiResponse<List<CertificationResponse>>> getAllCertifications() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getAllCertifications()));
+    @Override
+    public ResponseEntity<CertificationListResponse> getAllCertifications() {
+        CertificationListResponse body = new CertificationListResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getAllCertifications());
+        return ResponseEntity.ok(body);
     }
 
-    // ── Education ───────────────────────────────────── PUBLIC
+    // ── Education ─────────────────────────────────────────────────────────
 
-    @GetMapping("/education")
-    public ResponseEntity<ApiResponse<List<EducationResponse>>> getAllEducation() {
-        return ResponseEntity.ok(ApiResponse.ok("OK", portfolioService.getAllEducation()));
+    @Override
+    public ResponseEntity<EducationListResponse> getAllEducation() {
+        EducationListResponse body = new EducationListResponse();
+        body.setSuccess(true);
+        body.setMessage("OK");
+        body.setData(portfolioService.getAllEducation());
+        return ResponseEntity.ok(body);
     }
 }

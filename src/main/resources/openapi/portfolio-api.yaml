@@ -1,0 +1,709 @@
+openapi: "3.0.0"
+
+info:
+  title: Portfolio Service API
+  description: |
+    REST API that exposes portfolio data: experience, skills, projects,
+    certifications, and education.
+
+    **Public endpoints** – all `GET /api/portfolio/**` paths are open.
+
+    **Protected endpoints** – `POST`, `PUT`, `DELETE` require a valid JWT
+    with the `ADMIN` role, issued by the auth-service and forwarded by the
+    API Gateway via the `X-User-Id` / `X-User-Roles` headers.
+  version: "1.0.0"
+  contact:
+    name: Diego Anyosa
+    email: contact@diegoanyosa.com
+    url: https://diegoanyosa.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8082/api/v1
+    description: Local development
+  - url: https://api.diegoanyosa.com/api/v1
+    description: Production (via API Gateway)
+
+tags:
+  - name: Experience
+    description: Work experience entries
+  - name: Skills
+    description: Skill categories and items
+  - name: Projects
+    description: Portfolio projects
+  - name: Certifications
+    description: Professional certifications
+  - name: Education
+    description: Academic background
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ── Experience ────────────────────────────────────────────────────────────
+
+  /portfolio/experience:
+    get:
+      tags: [Experience]
+      operationId: getAllExperiences
+      summary: List all active experiences
+      description: Returns work experiences ordered by sortOrder ascending. Public endpoint.
+      security: []
+      responses:
+        "200":
+          description: Experiences retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceListResponse'
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Experience]
+      operationId: createExperience
+      summary: Create a new experience
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceRequest'
+      responses:
+        "201":
+          description: Experience created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceSingleResponse'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/experience/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UuidPathParam'
+
+    get:
+      tags: [Experience]
+      operationId: getExperienceById
+      summary: Get experience by ID
+      security: []
+      responses:
+        "200":
+          description: Experience found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceSingleResponse'
+        "404":
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Experience]
+      operationId: updateExperience
+      summary: Update an existing experience
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceRequest'
+      responses:
+        "200":
+          description: Experience updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceSingleResponse'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Experience]
+      operationId: deleteExperience
+      summary: Soft-delete an experience
+      description: Requires ADMIN role. Sets active=false, does not remove the record.
+      responses:
+        "200":
+          description: Experience soft-deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Skills ────────────────────────────────────────────────────────────────
+
+  /portfolio/skills:
+    get:
+      tags: [Skills]
+      operationId: getAllSkills
+      summary: List all skills
+      description: Returns skill categories with their items, ordered by sortOrder. Public endpoint.
+      security: []
+      responses:
+        "200":
+          description: Skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillListResponse'
+
+  # ── Projects ──────────────────────────────────────────────────────────────
+
+  /portfolio/projects:
+    get:
+      tags: [Projects]
+      operationId: getAllProjects
+      summary: List all active projects
+      security: []
+      responses:
+        "200":
+          description: Projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+
+    post:
+      tags: [Projects]
+      operationId: createProject
+      summary: Create a new project
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSingleResponse'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/projects/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UuidPathParam'
+
+    get:
+      tags: [Projects]
+      operationId: getProjectById
+      summary: Get project by ID
+      security: []
+      responses:
+        "200":
+          description: Project found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSingleResponse'
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Projects]
+      operationId: updateProject
+      summary: Update an existing project
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        "200":
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSingleResponse'
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Projects]
+      operationId: deleteProject
+      summary: Soft-delete a project
+      description: Requires ADMIN role. Sets active=false, does not remove the record.
+      responses:
+        "200":
+          description: Project soft-deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidResponse'
+        "403":
+          description: ADMIN role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Certifications ────────────────────────────────────────────────────────
+
+  /portfolio/certifications:
+    get:
+      tags: [Certifications]
+      operationId: getAllCertifications
+      summary: List all certifications
+      security: []
+      responses:
+        "200":
+          description: Certifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationListResponse'
+
+  # ── Education ─────────────────────────────────────────────────────────────
+
+  /portfolio/education:
+    get:
+      tags: [Education]
+      operationId: getAllEducation
+      summary: List all education entries
+      security: []
+      responses:
+        "200":
+          description: Education entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EducationListResponse'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT token forwarded by the API Gateway as a Bearer token.
+        Write operations require ADMIN role.
+
+  parameters:
+    UuidPathParam:
+      name: id
+      in: path
+      required: true
+      description: Resource UUID
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+  schemas:
+
+    # ── Envelope wrappers ───────────────────────────────────────────────────
+
+    ApiResponseBase:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+      example:
+        success: false
+        message: "Resource not found with id: 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        timestamp: "2025-01-01T00:00:00"
+
+    VoidResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+      example:
+        success: true
+        message: "Deleted"
+        timestamp: "2025-01-01T00:00:00"
+
+    # ── Experience ──────────────────────────────────────────────────────────
+
+    ExperienceRequest:
+      type: object
+      required: [company, role]
+      properties:
+        company:
+          type: string
+          minLength: 1
+          example: NTT Data
+        role:
+          type: string
+          minLength: 1
+          example: Senior Backend Engineer
+        period:
+          type: string
+          example: "Jan 2022 – Present"
+        location:
+          type: string
+          example: Lima, Peru
+        descriptionEs:
+          type: string
+          example: Desarrollo de microservicios con Spring Boot.
+        descriptionEn:
+          type: string
+          example: Microservices development with Spring Boot.
+        highlightsEs:
+          type: array
+          items:
+            type: string
+          example: ["Reducción de latencia en un 30%"]
+        highlightsEn:
+          type: array
+          items:
+            type: string
+          example: ["Reduced latency by 30%"]
+        stack:
+          type: array
+          items:
+            type: string
+          example: ["Java", "Spring Boot", "Kafka"]
+        sortOrder:
+          type: integer
+          default: 0
+        active:
+          type: boolean
+          default: true
+
+    ExperienceDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        company:
+          type: string
+        role:
+          type: string
+        period:
+          type: string
+        location:
+          type: string
+        descriptionEs:
+          type: string
+        descriptionEn:
+          type: string
+        highlightsEs:
+          type: array
+          items:
+            type: string
+        highlightsEn:
+          type: array
+          items:
+            type: string
+        stack:
+          type: array
+          items:
+            type: string
+        sortOrder:
+          type: integer
+
+    ExperienceSingleResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ExperienceDto'
+
+    ExperienceListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExperienceDto'
+
+    # ── Skills ──────────────────────────────────────────────────────────────
+
+    SkillDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        categoryEs:
+          type: string
+          example: Lenguajes
+        categoryEn:
+          type: string
+          example: Languages
+        icon:
+          type: string
+          example: layers
+        items:
+          type: array
+          items:
+            type: string
+          example: ["Java", "TypeScript", "Python"]
+        sortOrder:
+          type: integer
+
+    SkillListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/SkillDto'
+
+    # ── Projects ────────────────────────────────────────────────────────────
+
+    ProjectRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Kafka DLQ Handler
+        descriptionEs:
+          type: string
+          example: Manejador de cola de mensajes muertos con Kafka.
+        descriptionEn:
+          type: string
+          example: Dead-letter queue handler with Kafka.
+        metrics:
+          type: string
+          example: "Processed 1M+ messages/day"
+        stack:
+          type: array
+          items:
+            type: string
+          example: ["Java", "Kafka", "Spring Boot"]
+        featured:
+          type: boolean
+          default: false
+        githubUrl:
+          type: string
+          format: uri
+          example: https://github.com/diegoanyosa/kafka-dlq
+        liveUrl:
+          type: string
+          format: uri
+          example: https://diegoanyosa.com/projects/kafka-dlq
+        sortOrder:
+          type: integer
+          default: 0
+        active:
+          type: boolean
+          default: true
+
+    ProjectDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        descriptionEs:
+          type: string
+        descriptionEn:
+          type: string
+        metrics:
+          type: string
+        stack:
+          type: array
+          items:
+            type: string
+        featured:
+          type: boolean
+        githubUrl:
+          type: string
+          format: uri
+        liveUrl:
+          type: string
+          format: uri
+        sortOrder:
+          type: integer
+
+    ProjectSingleResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProjectDto'
+
+    ProjectListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProjectDto'
+
+    # ── Certifications ──────────────────────────────────────────────────────
+
+    CertificationDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: AZ-900 Azure Fundamentals
+        issuer:
+          type: string
+          example: Microsoft Azure
+        year:
+          type: string
+          example: "2021"
+        badge:
+          type: string
+          example: Azure
+        sortOrder:
+          type: integer
+
+    CertificationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/CertificationDto'
+
+    # ── Education ────────────────────────────────────────────────────────────
+
+    EducationDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution:
+          type: string
+          example: Universidad Nacional Mayor de San Marcos
+        degreeEs:
+          type: string
+          example: Ingeniería de Sistemas
+        degreeEn:
+          type: string
+          example: Systems Engineering
+        period:
+          type: string
+          example: "2015 – 2020"
+        location:
+          type: string
+          example: Lima, Peru
+
+    EducationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/EducationDto'
