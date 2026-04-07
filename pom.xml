@@ -5,17 +5,22 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
+        <version>3.5.13</version>
         <relativePath/>
     </parent>
     <groupId>com.diegoanyosa</groupId>
     <artifactId>portfolio-service</artifactId>
     <version>1.0.0</version>
+
     <properties>
         <java.version>21</java.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
         <jjwt.version>0.12.5</jjwt.version>
+        <openapi-generator.version>7.4.0</openapi-generator.version>
+        <!-- Where the plugin writes generated sources -->
+        <openapi.generated-sources>${project.build.directory}/generated-sources/openapi</openapi.generated-sources>
     </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -27,7 +32,9 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
     <dependencies>
+        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -48,6 +55,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <!-- Spring Cloud -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -56,6 +65,8 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+
+        <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -73,6 +84,8 @@
             <version>11.7.2</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -90,11 +103,32 @@
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- OpenAPI generator runtime deps (required by generated interfaces) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.2.21</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+
+        <!-- Utilities -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -106,16 +140,114 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.12.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!--
+                ┌─────────────────────────────────────────────────────────┐
+                │  OpenAPI Generator – generates from the YAML contract   │
+                │                                                         │
+                │  Run:  mvn generate-sources                             │
+                │  Output: target/generated-sources/openapi/              │
+                │                                                         │
+                │  Generated artefacts:                                   │
+                │  • PortfolioApi  – Spring delegate interface            │
+                │  • All DTO model classes (ExperienceDto, etc.)          │
+                │                                                         │
+                │  Your job: implement PortfolioApiDelegate (see          │
+                │  controller/PortfolioController.java)                   │
+                └─────────────────────────────────────────────────────────┘
+            -->
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-portfolio-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- ① Source contract -->
+                            <inputSpec>
+                                ${project.basedir}/src/main/resources/openapi/portfolio-api.yaml
+                            </inputSpec>
+
+                            <!-- ② Use the Spring generator -->
+                            <generatorName>spring</generatorName>
+
+                            <!-- ③ Where to write the output -->
+                            <output>${openapi.generated-sources}</output>
+
+                            <!-- ④ Package names -->
+                            <apiPackage>com.diegoanyosa.portfolioservice.api</apiPackage>
+                            <modelPackage>com.diegoanyosa.portfolioservice.model.dto</modelPackage>
+                            <invokerPackage>com.diegoanyosa.portfolioservice.api</invokerPackage>
+
+                            <!-- ⑤ Generator options -->
+                            <configOptions>
+                                <!--
+                                    delegate pattern: the plugin generates an *interface*
+                                    (PortfolioApi) plus a no-op default delegate.
+                                    You implement PortfolioApiDelegate in your own class.
+                                    No generated code is ever touched after regeneration.
+                                -->
+                                <delegatePattern>true</delegatePattern>
+
+                                <!-- Use Spring Boot 3 / Jakarta EE -->
+                                <useSpringBoot3>true</useSpringBoot3>
+
+                                <!-- Generate only the interfaces/models, not a full app -->
+                                <interfaceOnly>false</interfaceOnly>
+
+                                <!-- Keep Lombok off on generated code (it conflicts) -->
+                                <useLombok>false</useLombok>
+
+                                <!-- Use Java records for models (clean, immutable) -->
+                                <useJakartaEe>true</useJakartaEe>
+
+                                <!-- Date/time library -->
+                                <dateLibrary>java8</dateLibrary>
+
+                                <!-- Validation annotations on models -->
+                                <useBeanValidation>true</useBeanValidation>
+                                <performBeanValidation>true</performBeanValidation>
+
+                                <!-- Return ResponseEntity from generated methods -->
+                                <returnSuccessCode>false</returnSuccessCode>
+
+                                <!-- Don't generate example values in code -->
+                                <generateBuilders>false</generateBuilders>
+
+                                <openApiNullable>true</openApiNullable>
+                            </configOptions>
+
+                            <!-- Skip the docs/test stubs we don't need -->
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <supportingFilesToGenerate>ApiUtil.java,OpenApiGeneratorApplication.java</supportingFilesToGenerate>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
