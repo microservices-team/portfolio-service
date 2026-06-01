@@ -1,6 +1,8 @@
 spring:
   application:
     name: portfolio-service
+  config:
+    import: optional:configserver:http://${CONFIG_USER:configuser}:${CONFIG_PASS:configpass}@${CONFIG_HOST:eureka-server}:8888
 
 logging:
   level:
